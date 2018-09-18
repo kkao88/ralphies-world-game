@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Ralphie's World</title>
+    <style>* { padding: 0; margin: 0; }</style>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js"></script>
+    <script src="js/phaser.min.js"></script>
+</head>
+<body>
+<script>
+    var gameWidth = 337;
+    var gameHeight = 400;
+
+    var movementRate = 160;
+
+    var game = new Phaser.Game(gameWidth, gameHeight, Phaser.CANVAS, null, {
+      preload: preload, create: create, update: update
+    });
+
+    var playing = true;
+
+    var cat;
+    var girl;
+
+    var map;
+    var layer;
+
+    var bed;
+    var longDrawer;
+    var rug;
+    var mirror;
+    var mirrors;
+    var catBed;
+    var vanity;
+    var vanityChair;
+    var footrest;
+    var shelf;
+    var windowsill;
+    var plant;
+
+    var catBarriers;
+    var ballBarriers;
+
+    var girlX = 200;
+    var bedX = 70;
+    var bedY = gameHeight - 115;
+    var longDrawerY = 100;
+    var vanityY = 100;
+    var footrestXOffset = 15;
+    var windowsillY = 200;
+
+    function preload() {
+        game.scale.scaleMode = Phaser.ScaleManager.NO_SCALE;
+        game.scale.pageAlignHorizontally = true;
+        game.scale.pageAlignVertically = true;
+
+        game.load.spritesheet('cat', 'img/cat.png', 32, 32);
+        game.load.image('bed', 'img/bed.png');
+        game.load.image('longDrawer', 'img/long_drawer.png');
+        game.load.image('rug', 'img/rug.png');
+        game.load.image('mirror', 'img/mirror.png');
+        game.load.image('catBed', 'img/cat_bed.png');
+        game.load.image('vanity', 'img/vanity.png');
+        game.load.image('vanityChair', 'img/vanity_chair.png');
+        game.load.image('footrest', 'img/footrest.png');
+        game.load.image('shelf', 'img/shelf.png');
+        game.load.image('windowsill', 'img/windowsill.png');
+        game.load.image('plant', 'img/plant.png');
+        game.load.image('cup', 'img/cup.png');
+        game.load.image('clefairy', 'img/clefairy.png');
+        game.load.image('pikachu', 'img/pikachu.png');
+        game.load.image('girlThrow', 'img/krile.png');
+        game.load.image('girlStand', 'img/krile_stand.png');
+        game.load.spritesheet('ball', 'img/ball3.png', 18, 16);
+
+        game.load.image('tiles', 'img/carpet.png');
+    }
+    function create() {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+
+        game.add.tileSprite(0, 0, gameWidth, gameHeight, 'tiles');
+
+        floorLayer = game.add.group();
+        balls = game.add.group();
+        mirrors = game.add.group();
+        catBarriers = game.add.group(); 
+
+        initCat();
+
+        createFurniture();
+
+        game.add.sprite(10, windowsillY + 85, 'cup');
+        game.add.sprite(5, windowsillY + 10, 'clefairy');
+        game.add.sprite(7, windowsillY + 40, 'pikachu');
+
+        var keyboard = game.input.keyboard;
+        var spaceButton = keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+        initBall();
+        //game.world.sendToBack(balls);
+
+        spaceButton.onUp.add(function (key) {
+            if (playing){
+                summonGirl();
+            }
+        });
+    }
+    function update() {
+
+        balls.forEach(function(ball){
+            if (ball.body.velocity.x === 0 && ball.body.velocity.y === 0){
+                ball.animations.stop(null, true);
+            }
+        });
+
+        cat.body.velocity.x = 0;
+        cat.body.velocity.y = 0;
+
+        if (playing) {
+            moveCat();
+        }
+
+        game.physics.arcade.collide(cat, catBarriers, function (cat, barrier){
+            cat.body.velocity.x = 0;
+            cat.body.velocity.y = 0;
+        });
+
+       game.physics.arcade.collide(cat, mirrors, function (cat, barrier){
+            cat.body.velocity.x = 0;
+            cat.body.velocity.y = 0;
+        });
+
+        game.physics.arcade.collide(cat, balls, function (cat, ball){
+            setBallVelocity(cat, ball);
+        });
+
+        game.physics.arcade.collide(balls, mirrors, function (ball, barrier){
+            ball.body.velocity.x = 0;
+            ball.body.velocity.y = 0;
+        });
+
+        game.physics.arcade.collide(balls, [footrest, shelf, windowsill], function (ball, barrier){
+            ball.body.velocity.x = 0;
+            ball.body.velocity.y = 0;
+        });
+    }
+
+    function initCat () {
+        cat = game.add.sprite(game.world.centerX, game.world.centerY, 'cat');
+
+        game.physics.enable(cat, Phaser.Physics.ARCADE);
+        cat.body.setSize(32, 20, 0, 12);
+        cat.body.collideWorldBounds = true;
+        cat.checkWorldBounds = true;
+        cat.anchor.set(0.5);
+        cat.frame = 8;
+
+        cat.animations.add('left', [12, 13, 14, 15], 5, true);
+        cat.animations.add('right', [4, 5, 6, 7], 5, true);
+        cat.animations.add('forward', [8, 9, 10, 11], 5, true);
+        cat.animations.add('backward', [0, 1, 2, 3], 5, true);
+        cat.animations.add('sleep', [28, 29], 1, true);
+
+        cat.animations.play('forward');
+    }
+
+    function initBall (isThrowIn) {
+        if (isThrowIn){
+            ball = balls.create(girlX + 15,  gameHeight - game.cache.getImage('girlStand').height - 10, 'ball');
+        }
+        else {
+            ball = balls.create(game.world.centerX, game.world.centerY - 20, 'ball');
+        }
+
+        ball.scale.setTo(.5 , .5);
+
+        game.physics.enable(ball, Phaser.Physics.ARCADE);
+        ball.body.collideWorldBounds = true;
+        ball.checkWorldBounds = true;
+        ball.anchor.set(0.5);
+        ball.frame = 24;
+        ball.body.drag.set(500, 500);
+
+        ball.animations.add('roll', null, 10, true);
+
+        if (isThrowIn){
+            ball.body.velocity.y = -_.random(200, 360);
+        }
+    }
+
+    function moveCat(){
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
+        {
+            cat.animations.play('left');
+            cat.body.velocity.x = -movementRate;
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
+        {
+            cat.animations.play('right');
+            cat.body.velocity.x = movementRate;
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.UP))
+        {
+            cat.animations.play('forward');
+            cat.body.velocity.y = -movementRate;
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
+        {
+            cat.animations.play('backward');
+            cat.body.velocity.y = movementRate;
+        }
+        else if (game.input.keyboard.isDown(Phaser.Keyboard.Z))
+        {
+            cat.animations.play('sleep');
+        }
+    }
+
+    function setBallVelocity (cat, ball){
+        ball.animations.play('roll');
+
+        if (cat.body.facing == 1){ //facing left
+            ball.body.velocity.x = -movementRate * Math.random() * 2;
+            ball.body.velocity.y = movementRate * (Math.random() - .5) * 3;
+        }
+        else if (cat.body.facing == 2){ //right
+            ball.body.velocity.x = movementRate * Math.random() * 2;
+            ball.body.velocity.y = movementRate * (Math.random() - .5) * 3;
+        }
+        else if (cat.body.facing == 3){ //up
+            ball.body.velocity.y = -movementRate * Math.random() * 2;
+            ball.body.velocity.x = movementRate * (Math.random() - .5) * 3;
+        }
+        else if (cat.body.facing == 4){ //down
+            ball.body.velocity.y = movementRate * Math.random() * 2;
+            ball.body.velocity.x = movementRate * (Math.random() - .5) * 3;
+        }
+    }
+
+    function createFurniture () {
+        bed = game.add.sprite(bedX, bedY, 'bed');
+        rug = floorLayer.create(bedX+100, bedY+10, 'rug');
+        drawer = catBarriers.create(game.world.width-35, longDrawerY, 'longDrawer');
+        catBed = floorLayer.create(game.world.width-35, longDrawerY + 
+            game.cache.getImage('longDrawer').height +
+            game.cache.getImage('catBed').height - 10, 'catBed');
+        
+        vanity = catBarriers.create(0, vanityY, 'vanity');
+        vanityChair = catBarriers.create(game.cache.getImage('vanity').width + 10,
+            vanityY, 'vanityChair');
+
+        footrest = catBarriers.create(bedX + footrestXOffset,
+            bedY - game.cache.getImage('footrest').height, 'footrest');
+
+        footrest = catBarriers.create(bedX + game.cache.getImage('footrest').width + footrestXOffset,
+            bedY - game.cache.getImage('footrest').height, 'footrest');
+
+        shelf = catBarriers.create(game.world.width - game.cache.getImage('shelf').width,
+            game.world.height - 140, 'shelf');
+
+        windowsill = catBarriers.create(0, windowsillY, 'windowsill');
+
+        plant = catBarriers.create(5, vanityY - 70, 'plant');
+
+        var mirrorWidth = game.cache.getImage('mirror').width;
+        var mirrorHeight = game.cache.getImage('mirror').height;
+        for (i = 0; i < gameWidth / mirrorWidth; i++){
+            mirror = game.add.sprite(mirrorWidth * i, 0, 'mirror');
+            game.physics.enable(mirror, Phaser.Physics.ARCADE);
+            mirror.body.immovable = true;
+            mirrors.add(mirror);
+        }
+
+        catBarriers.forEach(function(barrier){
+            game.physics.enable(barrier, Phaser.Physics.ARCADE);
+            barrier.body.immovable = true;
+        })
+    }
+
+    function summonGirl(){
+        playing = false;
+        girl = game.add.sprite(girlX, gameHeight, 'girlStand');
+        var moveTween = game.add.tween(girl);
+        var moveOutTween = game.add.tween(girl);
+
+        moveTween.to(
+            {y: gameHeight - game.cache.getImage('girlStand').height - 10}, 800,
+            Phaser.Easing.Linear.None);
+        moveTween.onComplete.add(function(){
+            girl.loadTexture('girlThrow', 0);
+            initBall(true);
+        }, this);
+
+        moveOutTween.to(
+            {y: gameHeight}, 800,
+            Phaser.Easing.Linear.None, false, 1000);
+        moveOutTween.onStart.add(function(){
+            girl.loadTexture('girlStand', 0);
+        }, this);
+        moveOutTween.onComplete.add(function(){
+            girl.kill();
+            playing = true;
+        }, this);
+
+        moveTween.chain(moveOutTween);
+
+        moveTween.start();
+    }
+</script>
+<div style="text-align: center; font-family: Rockwell; margin-top: 20px;">
+        <p>Arrow keys to move</p>
+        <p>Space bar for new ball</p>
+        <p>Z to rest</p>
+</div>
+
+</body>
+</html>

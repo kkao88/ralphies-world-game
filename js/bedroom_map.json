@@ -1,0 +1,44 @@
+{ "height":12,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[387, 387, 387, 387, 387, 387, 387, 413, 413, 413, 413, 413, 413, 413, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 83, 160, 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 58, 0, 0, 0, 0, 0, 0, 127, 0, 0, 0, 0, 0, 0, 387, 0, 0, 0, 0, 0, 0, 413, 0, 0, 217, 217, 0, 0, 6, 0, 0, 217, 217, 0, 0, 58, 0, 0, 217, 217, 0, 0, 0],
+         "height":12,
+         "name":"Tile Layer 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":7,
+         "x":0,
+         "y":0
+        }],
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.1.6",
+ "tileheight":17,
+ "tilesets":[
+        {
+         "columns":26,
+         "firstgid":1,
+         "grid":
+            {
+             "height":18,
+             "orientation":"orthogonal",
+             "width":18
+            },
+         "image":"..\/img\/roguelikeIndoor_transparent.png",
+         "imageheight":305,
+         "imagewidth":457,
+         "margin":0,
+         "name":"my_tileset",
+         "spacing":0,
+         "tilecount":532,
+         "tileheight":17,
+         "tilewidth":17
+        }],
+ "tilewidth":17,
+ "type":"map",
+ "version":1,
+ "width":7
+}
